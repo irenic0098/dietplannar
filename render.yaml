@@ -39,6 +39,6 @@ services:
         destination: "/index.html"
     envVars:
       - key: VITE_API_URL
-        value: "https://dietplanner-backend.onrender.com/api" # Change this if your backend name differs
+        value: "https://dietplanner-xl3q.onrender.com/api"
       - key: VITE_ADMIN_URL
-        value: "https://dietplanner-backend.onrender.com/admin/"
+        value: "https://dietplanner-xl3q.onrender.com/admin/"
