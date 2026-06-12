@@ -21,7 +21,7 @@ const translations = {
 
     // Home / Landing
     heroTitle: "Eat Smarter, Live Better",
-    heroSubtitle: "Achieve your health goals with AI-powered meal planning "
+    heroSubtitle: "Personalized Diet Planning and Wellness Tracking",
     getStarted: "Get Started Now",
     tryCalcs: "Try Free Calculators",
     whyChooseUs: "Why Choose Our Platform?",
