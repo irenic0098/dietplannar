@@ -1,0 +1,124 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
+import Sidebar from './components/Sidebar';
+
+// Pages
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import DietPlan from './pages/DietPlan';
+import FoodDatabase from './pages/FoodDatabase';
+import Tracking from './pages/Tracking';
+import Reports from './pages/Reports';
+import Community from './pages/Community';
+import Consultation from './pages/Consultation';
+import Profile from './pages/Profile';
+import AIChat from './pages/AIChat';
+
+// Route Guards
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div style={{ padding: '40px', color: '#fff', textAlign: 'center' }}>Verifying security credentials... 🔐</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
+};
+
+const GuestRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div style={{ padding: '40px', color: '#fff', textAlign: 'center' }}>Verifying credentials... 🔐</div>;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return children;
+};
+
+// Main Layout Wrapper
+const AppLayout = () => {
+  return (
+    <div className="app-container">
+      <Sidebar />
+      <div className="main-content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          
+          {/* Guest Routes */}
+          <Route path="/login" element={
+            <GuestRoute>
+              <Login />
+            </GuestRoute>
+          } />
+          <Route path="/register" element={
+            <GuestRoute>
+              <Register />
+            </GuestRoute>
+          } />
+
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/diet-plan" element={
+            <ProtectedRoute>
+              <DietPlan />
+            </ProtectedRoute>
+          } />
+          <Route path="/food-database" element={
+            <ProtectedRoute>
+              <FoodDatabase />
+            </ProtectedRoute>
+          } />
+          <Route path="/tracking" element={
+            <ProtectedRoute>
+              <Tracking />
+            </ProtectedRoute>
+          } />
+          <Route path="/reports" element={
+            <ProtectedRoute>
+              <Reports />
+            </ProtectedRoute>
+          } />
+          <Route path="/community" element={
+            <ProtectedRoute>
+              <Community />
+            </ProtectedRoute>
+          } />
+          <Route path="/consultation" element={
+            <ProtectedRoute>
+              <Consultation />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/ai-chat" element={
+            <ProtectedRoute>
+              <AIChat />
+            </ProtectedRoute>
+          } />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <LanguageProvider>
+          <AppLayout />
+        </LanguageProvider>
+      </AuthProvider>
+    </Router>
+  );
+}
+
+export default App;
