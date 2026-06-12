@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { ADMIN_URL } from '../config';
 
 const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave }) => {
   const { user, logout } = useAuth();
@@ -80,7 +81,7 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave }) => {
             </li>
             {user.is_staff && (
               <li className="nav-item" title={t('admin')}>
-                <a href="http://localhost:8000/admin/" target="_blank" rel="noopener noreferrer">
+                <a href={ADMIN_URL} target="_blank" rel="noopener noreferrer">
                   <span>⚙️</span> {!isCollapsed && t('admin')}
                 </a>
               </li>

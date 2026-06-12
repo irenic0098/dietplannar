@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../config';
 
 const AuthContext = createContext(null);
 
@@ -12,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     const fetchProfile = async () => {
       if (token) {
         try {
-          const res = await fetch('http://localhost:8000/api/auth/profile/', {
+          const res = await fetch(`${API_BASE_URL}/auth/profile/`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -36,7 +37,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    const res = await fetch('http://localhost:8000/api/auth/login/', {
+    const res = await fetch(`${API_BASE_URL}/auth/login/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -58,7 +59,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData) => {
-    const res = await fetch('http://localhost:8000/api/auth/register/', {
+    const res = await fetch(`${API_BASE_URL}/auth/register/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -81,7 +82,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     if (refreshToken) {
-      fetch('http://localhost:8000/api/auth/logout/', {
+      fetch(`${API_BASE_URL}/auth/logout/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateProfile = async (profileData) => {
-    const res = await fetch('http://localhost:8000/api/auth/profile/', {
+    const res = await fetch(`${API_BASE_URL}/auth/profile/`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateAvatar = async (formData) => {
-    const res = await fetch('http://localhost:8000/api/auth/profile/', {
+    const res = await fetch(`${API_BASE_URL}/auth/profile/`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`

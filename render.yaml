@@ -1,0 +1,44 @@
+services:
+  # Backend Python (Django) Web Service
+  - type: web
+    name: dietplanner-backend
+    env: python
+    buildCommand: "cd backend && chmod +x build.sh && ./build.sh"
+    startCommand: "cd backend && gunicorn dietplanner.wsgi:application"
+    plan: free
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.6
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: CORS_ALLOW_ALL_ORIGINS
+        value: "True"
+      - key: DATABASE_URL
+        sync: false # Set database connection string in Render Dashboard
+      - key: SECRET_KEY
+        generateValue: true # Generates a secure random secret key automatically
+
+  # Frontend Node (React Vite) Static Site
+  - type: web
+    name: dietplanner-frontend
+    env: static
+    buildCommand: "cd frontend && npm install && npm run build"
+    publishDir: "frontend/dist"
+    plan: free
+    headers:
+      - path: "/*"
+        headers:
+          - key: Cache-Control
+            value: "no-store, no-cache, must-revalidate, max-age=0"
+    routes:
+      # Rewrite all requests to index.html to support React Router client-side routing
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
+    envVars:
+      - key: VITE_API_URL
+        value: "https://dietplanner-backend.onrender.com/api" # Change this if your backend name differs
+      - key: VITE_ADMIN_URL
+        value: "https://dietplanner-backend.onrender.com/admin/"

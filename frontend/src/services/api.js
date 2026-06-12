@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const API = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: API_BASE_URL,
 });
 
 // Interceptor to add Authorization header
@@ -25,7 +26,7 @@ API.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const res = await axios.post('http://localhost:8000/api/token/refresh/', { refresh });
+          const res = await axios.post(`${API_BASE_URL}/token/refresh/`, { refresh });
           localStorage.setItem('token', res.data.access);
           originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
           return API(originalRequest);
