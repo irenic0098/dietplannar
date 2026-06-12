@@ -150,70 +150,208 @@ def calculate_water(weight_kg: float, activity_level: str) -> dict:
     }
 
 
-def generate_meal_plan(calories: int, goal: str, protein_g: int, carbs_g: int, fat_g: int) -> list:
-    """Generate a sample meal breakdown with food suggestions."""
+def generate_meal_plan(calories: int, goal: str, protein_g: int, carbs_g: int, fat_g: int,
+                       diet_preference: str = 'none', weight_kg: float = 70, height_cm: float = 170,
+                       age: int = 25, gender: str = 'male') -> list:
+    """
+    Generate a dynamic, personalized meal plan by query matching and portion scaling
+    from the Food database.
+    """
+    from food.models import Food
+    import random
 
-    # Meal splits (approximate)
-    breakfast_pct = 0.25
-    lunch_pct = 0.35
-    dinner_pct = 0.30
-    snack_pct = 0.10
+    # 1. Fetch matching foods based on diet_preference
+    foods = Food.objects.all()
+    if diet_preference == 'vegetarian':
+        foods = foods.filter(is_vegetarian=True)
+    elif diet_preference == 'vegan':
+        foods = foods.filter(is_vegan=True)
+    elif diet_preference == 'gluten_free':
+        foods = foods.filter(is_gluten_free=True)
+    elif diet_preference == 'diabetic':
+        foods = foods.filter(is_diabetic_friendly=True)
+    elif diet_preference == 'keto':
+        foods = foods.filter(is_keto=True)
 
-    def meal_macros(pct):
-        return {
-            "calories": round(calories * pct),
-            "protein_g": round(protein_g * pct),
-            "carbs_g": round(carbs_g * pct),
-            "fat_g": round(fat_g * pct),
-        }
+    foods_list = list(foods)
 
-    # Food suggestions based on goal
-    if goal == "lose":
-        breakfast_foods = ["2 boiled eggs", "1 cup oatmeal", "1 apple", "Green tea"]
-        lunch_foods = ["Grilled chicken breast (150g)", "Brown rice (½ cup)", "Mixed salad", "Cucumber slices"]
-        dinner_foods = ["Baked salmon (120g)", "Steamed broccoli", "Quinoa (½ cup)", "Lemon water"]
-        snack_foods = ["Greek yogurt (low fat)", "A handful of almonds", "1 banana"]
-    elif goal == "gain":
-        breakfast_foods = ["3 scrambled eggs", "Whole wheat toast (2 slices)", "Peanut butter (1 tbsp)", "Banana", "Whole milk (1 cup)"]
-        lunch_foods = ["Chicken breast (200g)", "White rice (1 cup)", "Sweet potato", "Olive oil dressing"]
-        dinner_foods = ["Lean beef (180g)", "Mashed potatoes", "Mixed vegetables", "Glass of milk"]
-        snack_foods = ["Protein shake", "Mixed nuts (30g)", "Cheese slice", "Whole fruit"]
-    else:
-        breakfast_foods = ["2 eggs any style", "Whole grain toast", "1 fruit of choice", "Coffee or tea"]
-        lunch_foods = ["Grilled chicken or fish (150g)", "Mixed greens salad", "Whole wheat pita", "Olive oil & vinegar"]
-        dinner_foods = ["Lean protein (150g)", "Roasted vegetables", "Brown rice or quinoa", "Herbal tea"]
-        snack_foods = ["Mixed nuts (20g)", "Low-fat yogurt", "Seasonal fruit"]
+    # 2. Group foods by functional categories for meals
+    breakfast_mains = [f for f in foods_list if f.category and f.category.name in ['Grains & Cereals', 'Dairy & Eggs', 'Legumes & Pulses']]
+    breakfast_sides = [f for f in foods_list if f.category and f.category.name in ['Fruits', 'Nuts & Seeds']]
+    breakfast_bevs = [f for f in foods_list if f.category and f.category.name in ['Beverages']]
 
-    return [
+    lunch_dinner_proteins = [f for f in foods_list if f.category and f.category.name in ['Meat & Poultry', 'Fish & Seafood', 'Legumes & Pulses', 'Dairy & Eggs'] and f.protein_g > 3]
+    lunch_dinner_grains = [f for f in foods_list if f.category and f.category.name in ['Grains & Cereals']]
+    lunch_dinner_veggies = [f for f in foods_list if f.category and f.category.name in ['Vegetables']]
+
+    snack_mains = [f for f in foods_list if f.category and f.category.name in ['Snacks', 'Nuts & Seeds', 'Fruits', 'Sweets & Desserts']]
+    snack_bevs = [f for f in foods_list if f.category and f.category.name in ['Beverages', 'Dairy & Eggs']]
+
+    # 3. Define the meals and target percentages
+    meals_config = [
         {
             "name": "Breakfast",
             "time": "7:00 – 8:00 AM",
             "icon": "🌅",
-            **meal_macros(breakfast_pct),
-            "foods": breakfast_foods,
+            "pct": 0.25,
+            "mains": breakfast_mains,
+            "sides": breakfast_sides,
+            "bevs": breakfast_bevs,
+            "fallback_mains": ["Oatmeal (cooked)", "Roti (whole wheat)", "Egg (boiled)", "Tofu (100g)"],
+            "fallback_sides": ["Apple", "Banana", "Almonds (30g)"],
+            "fallback_bevs": ["Whole Milk (250ml)", "Skim Milk (250ml)", "Green Tea (1 cup)"]
         },
         {
             "name": "Lunch",
             "time": "12:00 – 1:00 PM",
             "icon": "☀️",
-            **meal_macros(lunch_pct),
-            "foods": lunch_foods,
+            "pct": 0.35,
+            "mains": lunch_dinner_proteins,
+            "sides": lunch_dinner_grains,
+            "bevs": lunch_dinner_veggies,
+            "fallback_mains": ["Chicken Breast (cooked, 100g)", "Paneer (100g)", "Moong Dal (cooked, 100g)", "Tofu (100g)"],
+            "fallback_sides": ["Brown Rice (cooked)", "Roti (whole wheat)", "Quinoa (cooked)"],
+            "fallback_bevs": ["Spinach", "Broccoli", "Tomato", "Cucumber"]
         },
         {
             "name": "Dinner",
             "time": "7:00 – 8:00 PM",
             "icon": "🌙",
-            **meal_macros(dinner_pct),
-            "foods": dinner_foods,
+            "pct": 0.30,
+            "mains": lunch_dinner_proteins,
+            "sides": lunch_dinner_grains,
+            "bevs": lunch_dinner_veggies,
+            "fallback_mains": ["Chicken Breast (cooked, 100g)", "Paneer (100g)", "Masoor Dal (cooked, 100g)", "Tofu (100g)"],
+            "fallback_sides": ["Brown Rice (cooked)", "Roti (whole wheat)", "Quinoa (cooked)"],
+            "fallback_bevs": ["Broccoli", "Cucumber", "Cauliflower", "Mushroom"]
         },
         {
             "name": "Snacks",
             "time": "Between meals",
             "icon": "🍎",
-            **meal_macros(snack_pct),
-            "foods": snack_foods,
-        },
+            "pct": 0.10,
+            "mains": snack_mains,
+            "sides": None,
+            "bevs": snack_bevs,
+            "fallback_mains": ["Almonds (30g)", "Popcorn (30g, plain)", "Makhana Fox Nuts (30g)", "Dark Chocolate (30g)"],
+            "fallback_sides": None,
+            "fallback_bevs": ["Buttermilk/Chaas (250ml)", "Coconut Water (250ml)", "Green Tea (1 cup)"]
+        }
     ]
+
+    meal_plan_slots = []
+    # Seed control so random choices remain semi-stable or just select nice pairings
+    person_seed = int(weight_kg + height_cm + age + len(gender) + len(diet_preference))
+    random.seed(person_seed)
+
+    for m in meals_config:
+        meal_cal_target = round(calories * m["pct"])
+        
+        # 1. Select food items
+        # Select Main
+        main_food = None
+        if m["mains"]:
+            main_food = random.choice(m["mains"])
+        else:
+            fb_name = random.choice(m["fallback_mains"])
+            main_food = Food.objects.filter(name__icontains=fb_name.split(' (')[0]).first()
+            if not main_food:
+                main_food = Food(name=fb_name, calories=150, protein_g=10, carbs_g=15, fat_g=5)
+
+        # Select Side
+        side_food = None
+        if m["sides"] is not None:
+            if m["sides"]:
+                side_food = random.choice(m["sides"])
+            else:
+                fb_name = random.choice(m["fallback_sides"])
+                side_food = Food.objects.filter(name__icontains=fb_name.split(' (')[0]).first()
+                if not side_food:
+                    side_food = Food(name=fb_name, calories=80, protein_g=1, carbs_g=20, fat_g=0)
+
+        # Select Beverage/Veggie
+        bev_food = None
+        if m["bevs"]:
+            bev_food = random.choice(m["bevs"])
+        else:
+            fb_name = random.choice(m["fallback_bevs"])
+            bev_food = Food.objects.filter(name__icontains=fb_name.split(' (')[0]).first()
+            if not bev_food:
+                bev_food = Food(name=fb_name, calories=50, protein_g=2, carbs_g=5, fat_g=1)
+
+        # 2. Distribute calorie allocations
+        if side_food:
+            main_cal = meal_cal_target * 0.50
+            side_cal = meal_cal_target * 0.35
+            bev_cal = meal_cal_target * 0.15
+        else:
+            main_cal = meal_cal_target * 0.75
+            side_cal = 0
+            bev_cal = meal_cal_target * 0.25
+
+        food_items_descriptions = []
+        actual_meal_cal = 0
+        actual_meal_prot = 0
+        actual_meal_carbs = 0
+        actual_meal_fat = 0
+
+        def add_food_to_list(food, target_cal):
+            nonlocal actual_meal_cal, actual_meal_prot, actual_meal_carbs, actual_meal_fat
+            if not food:
+                return
+            
+            if food.calories <= 5:
+                serving_str = food.serving_description or "1 cup"
+                food_items_descriptions.append(f"{food.name} ({serving_str})")
+                actual_meal_cal += food.calories
+                actual_meal_prot += food.protein_g
+                actual_meal_carbs += food.carbs_g
+                actual_meal_fat += food.fat_g
+                return
+
+            portion_g = round((target_cal / food.calories) * food.serving_size_g)
+            
+            # Bound portions to sensible sizes
+            if food.category and food.category.name in ['Grains & Cereals']:
+                portion_g = max(min(portion_g, 250), 40)
+            elif food.category and food.category.name in ['Meat & Poultry', 'Fish & Seafood', 'Legumes & Pulses', 'Dairy & Eggs']:
+                portion_g = max(min(portion_g, 220), 50)
+            elif food.category and food.category.name in ['Nuts & Seeds']:
+                portion_g = max(min(portion_g, 40), 10)
+            elif food.category and food.category.name in ['Vegetables']:
+                portion_g = max(min(portion_g, 200), 50)
+            else:
+                portion_g = max(min(portion_g, 300), 30)
+
+            cal = round((portion_g / food.serving_size_g) * food.calories)
+            prot = round((portion_g / food.serving_size_g) * food.protein_g, 1)
+            carb = round((portion_g / food.serving_size_g) * food.carbs_g, 1)
+            fat = round((portion_g / food.serving_size_g) * food.fat_g, 1)
+
+            food_items_descriptions.append(f"{food.name} - {portion_g}g ({cal} kcal, P: {prot}g)")
+            
+            actual_meal_cal += cal
+            actual_meal_prot += prot
+            actual_meal_carbs += carb
+            actual_meal_fat += fat
+
+        add_food_to_list(main_food, main_cal)
+        add_food_to_list(side_food, side_cal)
+        add_food_to_list(bev_food, bev_cal)
+
+        meal_plan_slots.append({
+            "name": m["name"],
+            "time": m["time"],
+            "icon": m["icon"],
+            "calories": round(actual_meal_cal),
+            "protein_g": round(actual_meal_prot),
+            "carbs_g": round(actual_meal_carbs),
+            "fat_g": round(actual_meal_fat),
+            "foods": food_items_descriptions
+        })
+
+    random.seed(None)
+    return meal_plan_slots
 
 
 # ─────────────────────────────────────────────
@@ -293,6 +431,8 @@ def calculate_diet_plan(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        diet_preference = str(data.get('diet_preference', 'none')).lower()
+
         # Calculations
         bmi_data = calculate_bmi(weight_kg, height_cm)
         bmr = round(calculate_bmr(weight_kg, height_cm, age, gender))
@@ -302,7 +442,12 @@ def calculate_diet_plan(request):
         water_data = calculate_water(weight_kg, activity_level)
         meal_plan = generate_meal_plan(
             calorie_data['calories'], goal,
-            macros['protein_g'], macros['carbs_g'], macros['fat_g']
+            macros['protein_g'], macros['carbs_g'], macros['fat_g'],
+            diet_preference=diet_preference,
+            weight_kg=weight_kg,
+            height_cm=height_cm,
+            age=age,
+            gender=gender
         )
 
         # Ideal weight range (BMI 18.5–24.9)

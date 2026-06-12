@@ -30,6 +30,7 @@ def generate_plan(request):
     gender = data.get('gender', user.gender or 'male')
     activity_level = data.get('activity_level', user.activity_level or 'moderate')
     goal = data.get('goal', user.goal or 'maintain')
+    diet_preference = data.get('diet_preference', user.diet_preference or 'none')
     plan_name = data.get('name', f'Diet Plan - {goal.capitalize()}')
 
     bmr = calculate_bmr(weight_kg, height_cm, age, gender)
@@ -39,7 +40,12 @@ def generate_plan(request):
     water = calculate_water(weight_kg, activity_level)
     meal_plan = generate_meal_plan(
         calorie_data['calories'], goal,
-        macros['protein_g'], macros['carbs_g'], macros['fat_g']
+        macros['protein_g'], macros['carbs_g'], macros['fat_g'],
+        diet_preference=diet_preference,
+        weight_kg=weight_kg,
+        height_cm=height_cm,
+        age=age,
+        gender=gender
     )
 
     # Deactivate previous active plan
@@ -49,6 +55,7 @@ def generate_plan(request):
         user=user,
         name=plan_name,
         goal=goal,
+        diet_preference=diet_preference,
         target_calories=calorie_data['calories'],
         protein_g=macros['protein_g'],
         carbs_g=macros['carbs_g'],

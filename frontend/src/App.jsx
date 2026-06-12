@@ -1,11 +1,12 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
 import Sidebar from './components/Sidebar';
 
 // Pages
 import Home from './pages/Home';
+import Portal from './pages/Portal';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -35,12 +36,24 @@ const GuestRoute = ({ children }) => {
 
 // Main Layout Wrapper
 const AppLayout = () => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const location = useLocation();
+
+  const hideSidebar = location.pathname === '/' || location.pathname === '/portal';
+
   return (
-    <div className="app-container">
-      <Sidebar />
-      <div className="main-content">
+    <div className={`app-container ${isCollapsed || hideSidebar ? 'sidebar-collapsed' : ''}`}>
+      {!hideSidebar && (
+        <Sidebar 
+          isCollapsed={isCollapsed} 
+          onMouseEnter={() => setIsCollapsed(false)}
+          onMouseLeave={() => setIsCollapsed(true)}
+        />
+      )}
+      <div className="main-content" style={hideSidebar ? { marginLeft: 0 } : {}}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/portal" element={<Portal />} />
           
           {/* Guest Routes */}
           <Route path="/login" element={

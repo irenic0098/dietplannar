@@ -6,9 +6,18 @@ class DietPlan(models.Model):
     GOAL_CHOICES = [
         ('lose', 'Lose Weight'), ('maintain', 'Maintain'), ('gain', 'Gain Muscle'), ('healthy', 'Healthy Eating'),
     ]
+    DIET_CHOICES = [
+        ('none', 'No Preference'),
+        ('vegetarian', 'Vegetarian'),
+        ('vegan', 'Vegan'),
+        ('gluten_free', 'Gluten-Free'),
+        ('diabetic', 'Diabetic-Friendly'),
+        ('keto', 'Ketogenic'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='diet_plans')
     name = models.CharField(max_length=200, default='My Diet Plan')
     goal = models.CharField(max_length=20, choices=GOAL_CHOICES)
+    diet_preference = models.CharField(max_length=20, choices=DIET_CHOICES, default='none')
     target_calories = models.IntegerField()
     protein_g = models.FloatField()
     carbs_g = models.FloatField()

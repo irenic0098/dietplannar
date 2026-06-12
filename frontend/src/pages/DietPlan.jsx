@@ -20,6 +20,7 @@ const DietPlan = () => {
   const [gender, setGender] = useState(user?.gender || 'male');
   const [activity, setActivity] = useState(user?.activity_level || 'moderate');
   const [goal, setGoal] = useState(user?.goal || 'maintain');
+  const [dietPreference, setDietPreference] = useState(user?.diet_preference || 'none');
   const [name, setName] = useState('My Personalized Plan');
 
   const fetchActivePlan = async () => {
@@ -58,6 +59,7 @@ const DietPlan = () => {
         gender,
         activity_level: activity,
         goal,
+        diet_preference: dietPreference,
         name
       };
       const res = await planAPI.generatePlan(payload);
@@ -280,7 +282,7 @@ const DietPlan = () => {
 
             <div className="form-group" style={{ marginBottom: '24px' }}>
               <label className="form-label">{t('dietPreference')}</label>
-              <select className="form-select" value={goal} onChange={(e) => setGoal(e.target.value)}>
+              <select className="form-select" value={dietPreference} onChange={(e) => setDietPreference(e.target.value)}>
                 <option value="none">{t('none')}</option>
                 <option value="vegetarian">{t('vegetarian')}</option>
                 <option value="vegan">{t('vegan')}</option>
