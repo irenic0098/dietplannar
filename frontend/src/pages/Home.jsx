@@ -35,7 +35,7 @@ const Home = () => {
             </button>
           )}
           <button className="btn btn-secondary" onClick={() => navigate('/portal')}>
-            🌍 Language / Settings
+            🌍 Login / Settings
           </button>
         </div>
       </div>

@@ -38,9 +38,6 @@ const Portal = () => {
   const languages = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
     { code: 'hi', name: 'हिन्दी (Hindi)', flag: '🇮🇳' },
-    { code: 'es', name: 'Español (Spanish)', flag: '🇪🇸' },
-    { code: 'fr', name: 'Français (French)', flag: '🇫🇷' },
-    { code: 'de', name: 'Deutsch (German)', flag: '🇩🇪' },
   ];
 
   const handleSlideChange = (index) => {
@@ -229,7 +226,7 @@ const Portal = () => {
                 }} onClick={() => handleSlideChange(3)}>
                   <div className="stats-icon" style={{ margin: '0 auto', fontSize: '1.8rem', background: 'rgba(167, 139, 250, 0.15)', color: '#a78bfa' }}>🌍</div>
                   <h4 style={{ marginTop: '16px', marginBottom: '8px' }}>Language Settings</h4>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>Choose between English, Hindi, Spanish, French, and German.</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>Choose between English and Hindi.</p>
                   <button className="portal-card-btn">Choose Language →</button>
                 </div>
               </div>
