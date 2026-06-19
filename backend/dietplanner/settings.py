@@ -91,9 +91,12 @@ TEMPLATES = [
 
 # ─── Database ─────────────────────────────────────────────────────────────────
 import dj_database_url
+import sys
+
+IS_TESTING = 'test' in sys.argv or 'pytest' in sys.modules or any('pytest' in arg for arg in sys.argv) or 'PYTEST_CURRENT_TEST' in os.environ
 
 DATABASE_URL = env('DATABASE_URL', default=None)
-if DATABASE_URL:
+if DATABASE_URL and not IS_TESTING:
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
@@ -117,9 +120,6 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': REDIS_URL,
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
         'KEY_PREFIX': 'dietplanner',
         'TIMEOUT': 300,
     }

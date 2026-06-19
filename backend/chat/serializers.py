@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import ChatRoom, Message
-from accounts.serializers import ProfileSerializer
+from accounts.serializers import UserProfileSerializer
 
 class MessageSerializer(serializers.ModelSerializer):
     sender_name = serializers.CharField(source='sender.username', read_only=True)
@@ -14,7 +14,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 class ChatRoomSerializer(serializers.ModelSerializer):
-    participants = ProfileSerializer(many=True, read_only=True)
+    participants = UserProfileSerializer(many=True, read_only=True)
     participant_ids = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,

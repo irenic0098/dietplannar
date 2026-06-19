@@ -406,10 +406,10 @@ const Reports = () => {
                         </div>
                         
                         <div className="text-sm text-slate-400">
-                          {report.status === 'completed' && report.ai_remarks ? (
+                          {report.status === 'completed' && report.ai_summary ? (
                             <div>
                               <strong className="text-slate-350 block mb-1">AI Health Summary:</strong>
-                              <p className="leading-relaxed whitespace-pre-line">{report.ai_remarks}</p>
+                              <p className="leading-relaxed whitespace-pre-line">{report.ai_summary}</p>
                             </div>
                           ) : report.status === 'processing' ? (
                             <p className="italic text-slate-500">AI analysis running in background. Please refresh in a moment...</p>

@@ -10,6 +10,7 @@ def test_user_registration(api_client):
         'username': 'newuser',
         'email': 'newuser@example.com',
         'password': 'strongpassword123',
+        'password2': 'strongpassword123',
         'role': 'user'
     }
     response = api_client.post(url, data)
@@ -22,13 +23,14 @@ def test_user_registration(api_client):
 def test_user_login(api_client, test_user):
     url = reverse('auth-login')
     data = {
-        'username': 'testuser',
+        'email': 'testuser@example.com',
         'password': 'password123'
     }
     response = api_client.post(url, data)
     assert response.status_code == status.HTTP_200_OK
-    assert 'access' in response.data
-    assert 'refresh' in response.data
+    assert 'tokens' in response.data
+    assert 'access' in response.data['tokens']
+    assert 'refresh' in response.data['tokens']
 
 @pytest.mark.django_db
 def test_admin_stats_permission(api_client, test_user, admin_user):

@@ -17,12 +17,13 @@ def test_list_reports(api_client, test_user):
         title='My Blood Test',
         report_type='blood_test',
         status='completed',
-        ai_remarks='Perfectly healthy'
+        ai_summary='Perfectly healthy'
     )
     
     url = reverse('reports-list')
     api_client.force_authenticate(user=test_user)
     response = api_client.get(url)
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
-    assert response.data[0]['title'] == 'My Blood Test'
+    assert response.data['count'] == 1
+    assert len(response.data['reports']) == 1
+    assert response.data['reports'][0]['title'] == 'My Blood Test'

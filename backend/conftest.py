@@ -2,6 +2,15 @@ import pytest
 from rest_framework.test import APIClient
 from accounts.models import User
 
+@pytest.fixture(autouse=True)
+def use_dummy_cache(settings):
+    settings.CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'test-unique-cache',
+        }
+    }
+
 @pytest.fixture
 def api_client():
     return APIClient()
