@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { Provider, useSelector } from 'react-redux';
+import { store } from './store';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './queryClient';
 import Sidebar from './components/Sidebar';
 
 // Pages
@@ -18,6 +22,8 @@ import Community from './pages/Community';
 import Consultation from './pages/Consultation';
 import Profile from './pages/Profile';
 import AIChat from './pages/AIChat';
+import Notifications from './pages/Notifications';
+import AdminPortal from './pages/AdminPortal';
 
 // Route Guards
 const ProtectedRoute = ({ children }) => {
@@ -38,6 +44,11 @@ const GuestRoute = ({ children }) => {
 const AppLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const location = useLocation();
+  const themeMode = useSelector((state) => state.theme.mode);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeMode);
+  }, [themeMode]);
 
   const hideSidebar = location.pathname === '/' || location.pathname === '/portal';
 
@@ -113,6 +124,16 @@ const AppLayout = () => {
               <AIChat />
             </ProtectedRoute>
           } />
+          <Route path="/notifications" element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin-portal" element={
+            <ProtectedRoute>
+              <AdminPortal />
+            </ProtectedRoute>
+          } />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -124,13 +145,17 @@ const AppLayout = () => {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <LanguageProvider>
-          <AppLayout />
-        </LanguageProvider>
-      </AuthProvider>
-    </Router>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AuthProvider>
+            <LanguageProvider>
+              <AppLayout />
+            </LanguageProvider>
+          </AuthProvider>
+        </Router>
+      </QueryClientProvider>
+    </Provider>
   );
 }
 

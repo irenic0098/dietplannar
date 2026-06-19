@@ -1,5 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { toggleTheme } from '../store/themeSlice';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ADMIN_URL } from '../config';
@@ -8,6 +10,8 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave }) => {
   const { user, logout } = useAuth();
   const { changeLanguage, lang, t } = useLanguage();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const themeMode = useSelector((state) => state.theme.mode);
 
   const handleLogout = () => {
     logout();
@@ -59,6 +63,11 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave }) => {
                 <span>📈</span> {!isCollapsed && t('reports')}
               </NavLink>
             </li>
+            <li className="nav-item" title="Notifications">
+              <NavLink to="/notifications" className={({ isActive }) => isActive ? "active" : ""}>
+                <span>🔔</span> {!isCollapsed && 'Notifications'}
+              </NavLink>
+            </li>
             <li className="nav-item" title={t('community')}>
               <NavLink to="/community" className={({ isActive }) => isActive ? "active" : ""}>
                 <span>💬</span> {!isCollapsed && t('community')}
@@ -79,11 +88,11 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave }) => {
                 <span>👤</span> {!isCollapsed && `${t('welcome')}, ${user.username || 'User'}`}
               </NavLink>
             </li>
-            {user.is_staff && (
-              <li className="nav-item" title={t('admin')}>
-                <a href={ADMIN_URL} target="_blank" rel="noopener noreferrer">
-                  <span>⚙️</span> {!isCollapsed && t('admin')}
-                </a>
+            {(user.role === 'admin' || user.is_staff) && (
+              <li className="nav-item" title="Admin Portal">
+                <NavLink to="/admin-portal" className={({ isActive }) => isActive ? "active" : ""}>
+                  <span>⚙️</span> {!isCollapsed && 'Admin Portal'}
+                </NavLink>
               </li>
             )}
             <li className="nav-item" style={{ marginTop: 'auto' }}>
@@ -119,7 +128,24 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave }) => {
         )}
       </ul>
 
-      <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center' }}>
+      {/* Theme and Language Controls */}
+      <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+        {/* Theme Toggle */}
+        <button 
+          onClick={() => dispatch(toggleTheme())}
+          style={{
+            background: 'none',
+            border: 'none',
+            fontSize: '1.2rem',
+            cursor: 'pointer',
+            padding: '4px'
+          }}
+          title={`Toggle ${themeMode === 'light' ? 'Dark' : 'Light'} Mode`}
+        >
+          {themeMode === 'light' ? '🌙' : '☀️'}
+        </button>
+
+        {/* Language select */}
         {isCollapsed ? (
           <span style={{ fontSize: '1.2rem', cursor: 'pointer' }} title={lang.toUpperCase()}>🌐</span>
         ) : (
