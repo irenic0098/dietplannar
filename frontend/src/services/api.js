@@ -64,9 +64,9 @@ export const foodAPI = {
 };
 
 export const trackingAPI = {
-  getFoodLog: (date) => API.get(`/tracking/log/?date=${date}`),
-  addFoodLog: (data) => API.post('/tracking/log/', data),
-  deleteFoodLog: (id) => API.delete(`/tracking/log/${id}/`),
+  getFoodLog: (date) => API.get(`/tracking/food/?date=${date}`),
+  addFoodLog: (data) => API.post('/tracking/food/', data),
+  deleteFoodLog: (id) => API.delete(`/tracking/food/${id}/delete/`),
   getWaterLog: (date) => API.get(`/tracking/water/?date=${date}`),
   updateWaterLog: (data) => API.post('/tracking/water/', data),
   getExerciseLog: (date) => API.get(`/tracking/exercise/?date=${date}`),
