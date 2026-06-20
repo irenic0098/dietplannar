@@ -27,13 +27,12 @@ def custom_exception_handler(exc, context):
         response.data = error_data
     else:
         # Unhandled exception — log it
-        import traceback
         logger.exception(f'Unhandled exception in {context.get("view", "unknown")}: {exc}')
         response = Response({
             'success': False,
             'status_code': 500,
-            'message': f'Unhandled exception: {str(exc)}',
-            'errors': {'traceback': traceback.format_exc()},
+            'message': 'An internal server error occurred.',
+            'errors': {},
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return response
