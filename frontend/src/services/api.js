@@ -71,7 +71,7 @@ export const trackingAPI = {
   updateWaterLog: (data) => API.post('/tracking/water/', data),
   getExerciseLog: (date) => API.get(`/tracking/exercise/?date=${date}`),
   addExerciseLog: (data) => API.post('/tracking/exercise/', data),
-  deleteExerciseLog: (id) => API.delete(`/tracking/exercise/${id}/`),
+  deleteExerciseLog: (id) => API.delete(`/tracking/exercise/${id}/delete/`),
   getWeightLog: () => API.get('/tracking/weight/'),
   addWeightLog: (data) => API.post('/tracking/weight/', data),
   getReport: (period = 'week') => API.get(`/tracking/report/?period=${period}`),

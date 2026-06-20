@@ -7,5 +7,6 @@ urlpatterns = [
     path('food/', views.food_log, name='food-log'),
     path('food/<int:log_id>/delete/', views.delete_food_log, name='delete-food-log'),
     path('exercise/', views.exercise_log, name='exercise-log'),
+    path('exercise/<int:log_id>/delete/', views.delete_exercise_log, name='delete-exercise-log'),
     path('report/', views.report, name='report'),
 ]

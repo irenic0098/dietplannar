@@ -170,3 +170,14 @@ def report(request):
         },
         'deficiency_alerts': deficiencies,
     })
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_exercise_log(request, log_id):
+    try:
+        log = ExerciseLog.objects.get(id=log_id, user=request.user)
+        log.delete()
+        return Response({'message': 'Exercise log deleted.'}, status=204)
+    except ExerciseLog.DoesNotExist:
+        return Response({'error': 'Log not found.'}, status=404)
