@@ -3,6 +3,41 @@ import { API_BASE_URL } from '../config';
 
 const AuthContext = createContext(null);
 
+const parseError = async (res) => {
+  try {
+    const data = await res.json();
+    if (data) {
+      if (data.message) {
+        if (data.errors && typeof data.errors === 'object' && Object.keys(data.errors).length > 0) {
+          const fieldErrors = Object.entries(data.errors)
+            .map(([field, msgs]) => {
+              const msgStr = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+              if (field === 'non_field_errors' || field === 'detail') {
+                return msgStr;
+              }
+              return `${field}: ${msgStr}`;
+            })
+            .join(' | ');
+          return fieldErrors || data.message;
+        }
+        return data.message;
+      }
+      if (data.detail) return data.detail;
+      if (data.non_field_errors) {
+        return Array.isArray(data.non_field_errors) ? data.non_field_errors.join(' ') : data.non_field_errors;
+      }
+      const values = Object.values(data).flat();
+      const stringValues = values.filter(val => typeof val === 'string');
+      if (stringValues.length > 0) {
+        return stringValues.join(' ');
+      }
+    }
+  } catch (err) {
+    // Ignore and fallback
+  }
+  return `Error ${res.status}: ${res.statusText || 'Unknown error'}`;
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -45,10 +80,12 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.detail || data.non_field_errors || Object.values(data).flat().join(' ') || 'Login failed');
+      const errorMsg = await parseError(res);
+      throw new Error(errorMsg || 'Login failed');
     }
+
+    const data = await res.json();
 
     localStorage.setItem('token', data.tokens.access);
     localStorage.setItem('refresh_token', data.tokens.refresh);
@@ -67,10 +104,12 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify(userData),
     });
 
-    const data = await res.json();
     if (!res.ok) {
-      throw new Error(Object.values(data).flat().join(' ') || 'Registration failed');
+      const errorMsg = await parseError(res);
+      throw new Error(errorMsg || 'Registration failed');
     }
+
+    const data = await res.json();
 
     localStorage.setItem('token', data.tokens.access);
     localStorage.setItem('refresh_token', data.tokens.refresh);
@@ -108,10 +147,12 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify(profileData),
     });
 
-    const data = await res.json();
     if (!res.ok) {
-      throw new Error(Object.values(data).flat().join(' ') || 'Update profile failed');
+      const errorMsg = await parseError(res);
+      throw new Error(errorMsg || 'Update profile failed');
     }
+
+    const data = await res.json();
 
     setUser(data);
     return data;
@@ -126,10 +167,12 @@ export const AuthProvider = ({ children }) => {
       body: formData, // FormData contains file
     });
 
-    const data = await res.json();
     if (!res.ok) {
-      throw new Error('Avatar update failed');
+      const errorMsg = await parseError(res);
+      throw new Error(errorMsg || 'Avatar update failed');
     }
+
+    const data = await res.json();
 
     setUser(data);
     return data;

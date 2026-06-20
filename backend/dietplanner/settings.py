@@ -116,14 +116,38 @@ else:
 # ─── Cache & Redis ────────────────────────────────────────────────────────────
 REDIS_URL = env('REDIS_URL', default='redis://localhost:6379/0')
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': REDIS_URL,
-        'KEY_PREFIX': 'dietplanner',
-        'TIMEOUT': 300,
+# Check if Redis is running, otherwise fallback to LocMemCache
+import socket
+from urllib.parse import urlparse
+
+_redis_available = False
+try:
+    _url = urlparse(REDIS_URL)
+    _host = _url.hostname or 'localhost'
+    _port = _url.port or 6379
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as _s:
+        _s.settimeout(0.5)
+        _s.connect((_host, _port))
+    _redis_available = True
+except Exception:
+    _redis_available = False
+
+if _redis_available:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'KEY_PREFIX': 'dietplanner',
+            'TIMEOUT': 300,
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'dietplanner-local-fallback',
+        }
+    }
 
 # ─── Channels ─────────────────────────────────────────────────────────────────
 CHANNEL_LAYERS = {
