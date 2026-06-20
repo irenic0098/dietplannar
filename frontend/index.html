@@ -13,13 +13,31 @@
     <script type="module" src="/src/main.jsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').then(reg => {
-            console.log('SW registered successfully:', reg.scope);
-          }).catch(err => {
-            console.log('SW registration failed:', err);
+        if (window.location.hostname === 'localhost') {
+          // Clean up service worker and cache storage in local development
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (let registration of registrations) {
+              registration.unregister();
+              console.log('Service Worker unregistered on localhost');
+            }
           });
-        });
+          if (window.caches) {
+            caches.keys().then(names => {
+              for (let name of names) {
+                caches.delete(name);
+                console.log('Cache storage cleared:', name);
+              }
+            });
+          }
+        } else {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+              console.log('SW registered successfully:', reg.scope);
+            }).catch(err => {
+              console.log('SW registration failed:', err);
+            });
+          });
+        }
       }
     </script>
   </body>
