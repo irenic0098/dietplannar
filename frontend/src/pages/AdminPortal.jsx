@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import { 
   Shield, 
   Users, 
@@ -14,7 +13,15 @@ import {
   ShieldCheck,
   UserCheck
 } from 'lucide-react';
-import API_URL from '../config';
+import { adminAPI } from '../services/api';
+
+const getActionClass = (action) => {
+  const lower = (action || '').toLowerCase();
+  if (lower.includes('login') || lower.includes('register')) return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+  if (lower.includes('update') || lower.includes('change') || lower.includes('edit')) return 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+  if (lower.includes('delete') || lower.includes('logout')) return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+  return 'bg-slate-800 text-slate-400 border border-slate-700/50';
+};
 
 const AdminPortal = () => {
   const [activeTab, setActiveTab] = useState('stats');
@@ -22,35 +29,31 @@ const AdminPortal = () => {
   const queryClient = useQueryClient();
   const token = localStorage.getItem('token');
 
-  const headers = {
-    Authorization: `Bearer ${token}`
-  };
-
   // Fetch Stats
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
     queryKey: ['adminStats'],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/v1/auth/admin/stats/`, { headers });
+      const response = await adminAPI.getStats();
       return response.data;
     },
     enabled: activeTab === 'stats' && !!token,
   });
 
   // Fetch Users
-  const { data: users = [], isLoading: usersLoading, error: usersError } = useQuery({
+  const { data: users = {}, isLoading: usersLoading, error: usersError } = useQuery({
     queryKey: ['adminUsers'],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/v1/auth/admin/users/`, { headers });
+      const response = await adminAPI.getUsers();
       return response.data;
     },
     enabled: activeTab === 'users' && !!token,
   });
 
   // Fetch Audit Logs
-  const { data: auditLogs = [], isLoading: logsLoading, error: logsError } = useQuery({
+  const { data: auditLogs = {}, isLoading: logsLoading, error: logsError } = useQuery({
     queryKey: ['adminAuditLogs'],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/v1/auth/admin/audit-logs/`, { headers });
+      const response = await adminAPI.getAuditLogs();
       return response.data;
     },
     enabled: activeTab === 'logs' && !!token,
@@ -59,7 +62,7 @@ const AdminPortal = () => {
   // Change User Role Mutation
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, role }) => {
-      await axios.post(`${API_URL}/api/v1/auth/admin/users/${userId}/role/`, { role }, { headers });
+      await adminAPI.updateUserRole(userId, role);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['adminUsers']);
@@ -146,13 +149,17 @@ const AdminPortal = () => {
 
                 <div className="bg-slate-900/30 border border-slate-800 p-6 rounded-2xl backdrop-blur-md">
                   <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Plan Creators & Dieticians</span>
-                  <h3 className="text-4xl font-extrabold text-emerald-400 mt-2">{stats.total_dieticians || 0}</h3>
+                  <h3 className="text-4xl font-extrabold text-emerald-400 mt-2">
+                    {stats.users_by_role?.dietician || stats.total_dieticians || 0}
+                  </h3>
                   <p className="text-xs text-slate-500 mt-2">Verified diet consultants</p>
                 </div>
 
                 <div className="bg-slate-900/30 border border-slate-800 p-6 rounded-2xl backdrop-blur-md">
                   <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Platform Staff Admins</span>
-                  <h3 className="text-4xl font-extrabold text-amber-400 mt-2">{stats.total_admins || 0}</h3>
+                  <h3 className="text-4xl font-extrabold text-amber-400 mt-2">
+                    {((stats.users_by_role?.admin || 0) + (stats.users_by_role?.super_admin || 0)) || stats.total_admins || 0}
+                  </h3>
                   <p className="text-xs text-slate-500 mt-2">With system permissions</p>
                 </div>
               </div>
@@ -180,7 +187,7 @@ const AdminPortal = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((u) => (
+                     {(users.results || (Array.isArray(users) ? users : [])).map((u) => (
                       <tr key={u.id} className="border-b border-slate-800/50 hover:bg-slate-900/10 transition-colors">
                         <td className="p-4 font-semibold text-slate-200">{u.username}</td>
                         <td className="p-4 text-slate-400">{u.email}</td>
@@ -235,26 +242,23 @@ const AdminPortal = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {auditLogs.map((log) => (
+                     {(auditLogs.logs || (Array.isArray(auditLogs) ? auditLogs : [])).map((log) => (
                       <tr key={log.id} className="border-b border-slate-800/50 hover:bg-slate-900/10 transition-colors text-sm">
                         <td className="p-4 text-slate-400 font-mono">
-                          {new Date(log.timestamp).toLocaleString()}
+                          {new Date(log.created_at).toLocaleString()}
                         </td>
                         <td className="p-4 font-semibold text-slate-300">
-                          {log.user_email || 'System / Anonymous'}
+                          {log.user || 'System / Anonymous'}
                         </td>
                         <td className="p-4">
-                          <span className={`px-2 py-0.5 rounded text-xs font-bold font-mono ${
-                            log.action === 'CREATE' ? 'bg-emerald-500/10 text-emerald-400' :
-                            log.action === 'UPDATE' ? 'bg-amber-500/10 text-amber-400' :
-                            log.action === 'DELETE' ? 'bg-rose-500/10 text-rose-400' :
-                            'bg-slate-800 text-slate-400'
-                          }`}>
-                            {log.action}
+                          <span className={`px-2 py-0.5 rounded text-xs font-bold font-mono ${getActionClass(log.action)}`}>
+                            {log.action.toUpperCase()}
                           </span>
                         </td>
-                        <td className="p-4 text-slate-300 truncate max-w-xs" title={log.target_model}>
-                          {log.target_model} <span className="text-slate-500">({log.target_id})</span>
+                        <td className="p-4 text-slate-300 truncate max-w-xs font-mono text-xs" title={`${log.method} ${log.endpoint}`}>
+                          <span className="text-violet-400 mr-2">[{log.method}]</span>
+                          {log.endpoint}
+                          <span className="text-slate-500 ml-2">({log.status_code})</span>
                         </td>
                         <td className="p-4 text-slate-500 font-mono">{log.ip_address}</td>
                       </tr>

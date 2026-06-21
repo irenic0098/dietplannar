@@ -1,41 +1,56 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { API_BASE_URL } from '../config';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
-const parseError = async (res) => {
-  try {
-    const data = await res.json();
-    if (data) {
-      if (data.message) {
-        if (data.errors && typeof data.errors === 'object' && Object.keys(data.errors).length > 0) {
-          const fieldErrors = Object.entries(data.errors)
-            .map(([field, msgs]) => {
-              const msgStr = Array.isArray(msgs) ? msgs.join(', ') : msgs;
-              if (field === 'non_field_errors' || field === 'detail') {
-                return msgStr;
-              }
-              return `${field}: ${msgStr}`;
-            })
-            .join(' | ');
-          return fieldErrors || data.message;
-        }
-        return data.message;
+const parseAxiosError = (err) => {
+  const data = err.response?.data;
+  if (data) {
+    if (data.message) {
+      if (data.errors && typeof data.errors === 'object' && Object.keys(data.errors).length > 0) {
+        const fieldErrors = Object.entries(data.errors)
+          .map(([field, msgs]) => {
+            const msgStr = Array.isArray(msgs) ? msgs.join(', ') : msgs;
+            if (field === 'non_field_errors' || field === 'detail') {
+              return msgStr;
+            }
+            return `${field}: ${msgStr}`;
+          })
+          .join(' | ');
+        return fieldErrors || data.message;
       }
-      if (data.detail) return data.detail;
-      if (data.non_field_errors) {
-        return Array.isArray(data.non_field_errors) ? data.non_field_errors.join(' ') : data.non_field_errors;
-      }
-      const values = Object.values(data).flat();
-      const stringValues = values.filter(val => typeof val === 'string');
-      if (stringValues.length > 0) {
-        return stringValues.join(' ');
-      }
+      return data.message;
     }
-  } catch (err) {
-    // Ignore and fallback
+    if (data.detail) return data.detail;
+    if (data.non_field_errors) {
+      return Array.isArray(data.non_field_errors) ? data.non_field_errors.join(' ') : data.non_field_errors;
+    }
+    const values = Object.values(data).flat();
+    const stringValues = values.filter(val => typeof val === 'string');
+    if (stringValues.length > 0) {
+      return stringValues.join(' ');
+    }
   }
-  return `Error ${res.status}: ${res.statusText || 'Unknown error'}`;
+  return err.message || 'An unknown error occurred';
+};
+
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window
+        .atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const { exp } = JSON.parse(jsonPayload);
+    return Date.now() >= exp * 1000;
+  } catch (err) {
+    return true;
+  }
 };
 
 export const AuthProvider = ({ children }) => {
@@ -48,18 +63,8 @@ export const AuthProvider = ({ children }) => {
     const fetchProfile = async () => {
       if (token) {
         try {
-          const res = await fetch(`${API_BASE_URL}/auth/profile/`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setUser(data);
-          } else {
-            // Token might be expired
-            logout();
-          }
+          const res = await authAPI.getProfile();
+          setUser(res.data);
         } catch (err) {
           console.error('Error fetching profile:', err);
           logout();
@@ -72,63 +77,46 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    const res = await fetch(`${API_BASE_URL}/auth/login/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await authAPI.login(email, password);
+      const data = res.data;
 
-    if (!res.ok) {
-      const errorMsg = await parseError(res);
+      localStorage.setItem('token', data.tokens.access);
+      localStorage.setItem('refresh_token', data.tokens.refresh);
+      setToken(data.tokens.access);
+      setRefreshToken(data.tokens.refresh);
+      setUser(data.user);
+      return data.user;
+    } catch (err) {
+      const errorMsg = parseAxiosError(err);
       throw new Error(errorMsg || 'Login failed');
     }
-
-    const data = await res.json();
-
-    localStorage.setItem('token', data.tokens.access);
-    localStorage.setItem('refresh_token', data.tokens.refresh);
-    setToken(data.tokens.access);
-    setRefreshToken(data.tokens.refresh);
-    setUser(data.user);
-    return data.user;
   };
 
   const register = async (userData) => {
-    const res = await fetch(`${API_BASE_URL}/auth/register/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
+    try {
+      const res = await authAPI.register(userData);
+      const data = res.data;
 
-    if (!res.ok) {
-      const errorMsg = await parseError(res);
+      localStorage.setItem('token', data.tokens.access);
+      localStorage.setItem('refresh_token', data.tokens.refresh);
+      setToken(data.tokens.access);
+      setRefreshToken(data.tokens.refresh);
+      setUser(data.user);
+      return data.user;
+    } catch (err) {
+      const errorMsg = parseAxiosError(err);
       throw new Error(errorMsg || 'Registration failed');
     }
-
-    const data = await res.json();
-
-    localStorage.setItem('token', data.tokens.access);
-    localStorage.setItem('refresh_token', data.tokens.refresh);
-    setToken(data.tokens.access);
-    setRefreshToken(data.tokens.refresh);
-    setUser(data.user);
-    return data.user;
   };
 
   const logout = () => {
-    if (refreshToken) {
-      fetch(`${API_BASE_URL}/auth/logout/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ refresh: refreshToken }),
-      }).catch(err => console.error('Logout request failed', err));
+    if (refreshToken && !isTokenExpired(token)) {
+      authAPI.logout(refreshToken).catch(err => {
+        if (err.response?.status !== 401 && err.response?.status !== 400) {
+          console.error('Logout request failed', err);
+        }
+      });
     }
     localStorage.removeItem('token');
     localStorage.removeItem('refresh_token');
@@ -138,45 +126,27 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateProfile = async (profileData) => {
-    const res = await fetch(`${API_BASE_URL}/auth/profile/`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(profileData),
-    });
-
-    if (!res.ok) {
-      const errorMsg = await parseError(res);
+    try {
+      const res = await authAPI.updateProfile(profileData);
+      setUser(res.data);
+      return res.data;
+    } catch (err) {
+      const errorMsg = parseAxiosError(err);
       throw new Error(errorMsg || 'Update profile failed');
     }
-
-    const data = await res.json();
-
-    setUser(data);
-    return data;
   };
 
   const updateAvatar = async (formData) => {
-    const res = await fetch(`${API_BASE_URL}/auth/profile/`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formData, // FormData contains file
-    });
-
-    if (!res.ok) {
-      const errorMsg = await parseError(res);
+    try {
+      const res = await authAPI.updateAvatar(formData);
+      setUser(res.data);
+      return res.data;
+    } catch (err) {
+      const errorMsg = parseAxiosError(err);
       throw new Error(errorMsg || 'Avatar update failed');
     }
-
-    const data = await res.json();
-
-    setUser(data);
-    return data;
   };
+
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateProfile, updateAvatar }}>

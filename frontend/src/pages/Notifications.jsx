@@ -1,6 +1,5 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import { 
   Bell, 
   Check, 
@@ -14,7 +13,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import API_URL from '../config';
+import { notificationsAPI } from '../services/api';
 
 const getNotificationIcon = (type) => {
   switch (type) {
@@ -51,16 +50,13 @@ const Notifications = () => {
   const { user } = useAuth();
   const token = localStorage.getItem('token');
 
-  const headers = {
-    Authorization: `Bearer ${token}`
-  };
-
   // Fetch notifications
   const { data: notifications = [], isLoading, error } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/v1/notifications/`, { headers });
-      return response.data;
+      const response = await notificationsAPI.getNotifications();
+      const data = response.data;
+      return Array.isArray(data) ? data : (data.notifications || data.results || []);
     },
     enabled: !!token,
   });
@@ -68,7 +64,7 @@ const Notifications = () => {
   // Mark all read mutation
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      await axios.post(`${API_URL}/api/v1/notifications/read-all/`, {}, { headers });
+      await notificationsAPI.markAllRead();
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['notifications']);
@@ -78,7 +74,7 @@ const Notifications = () => {
   // Mark single read mutation
   const markReadMutation = useMutation({
     mutationFn: async (id) => {
-      await axios.post(`${API_URL}/api/v1/notifications/${id}/read/`, {}, { headers });
+      await notificationsAPI.markRead(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['notifications']);
@@ -88,7 +84,7 @@ const Notifications = () => {
   // Clear all mutation
   const clearAllMutation = useMutation({
     mutationFn: async () => {
-      await axios.post(`${API_URL}/api/v1/notifications/clear/`, {}, { headers });
+      await notificationsAPI.clearAll();
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['notifications']);

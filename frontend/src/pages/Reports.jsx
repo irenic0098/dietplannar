@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { trackingAPI } from '../services/api';
+import { trackingAPI, reportsAPI } from '../services/api';
 import { Line, Bar } from 'react-chartjs-2';
-import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FileText,
@@ -16,7 +15,6 @@ import {
   ClipboardList,
   Sparkles
 } from 'lucide-react';
-import API_URL from '../config';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -55,7 +53,6 @@ const Reports = () => {
   const [reportType, setReportType] = useState('blood_test');
   const queryClient = useQueryClient();
   const token = localStorage.getItem('token');
-  const headers = { Authorization: `Bearer ${token}` };
 
   const fetchReport = async () => {
     setAnalyticsLoading(true);
@@ -77,8 +74,9 @@ const Reports = () => {
   const { data: medicalReports = [], isLoading: medicalLoading } = useQuery({
     queryKey: ['medicalReports'],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/v1/reports/`, { headers });
-      return response.data;
+      const response = await reportsAPI.getReports();
+      const data = response.data;
+      return Array.isArray(data) ? data : (data.reports || data.results || []);
     },
     enabled: activeSubTab === 'medical' && !!token,
   });
@@ -87,8 +85,9 @@ const Reports = () => {
   const { data: detectedDeficiencies = [] } = useQuery({
     queryKey: ['detectedDeficiencies'],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/api/v1/reports/deficiencies/`, { headers });
-      return response.data;
+      const response = await reportsAPI.getDeficiencies();
+      const data = response.data;
+      return Array.isArray(data) ? data : (data.deficiencies || data.results || []);
     },
     enabled: activeSubTab === 'medical' && !!token,
   });
@@ -96,13 +95,7 @@ const Reports = () => {
   // Upload Medical Report Mutation
   const uploadReportMutation = useMutation({
     mutationFn: async (formData) => {
-      const config = {
-        headers: {
-          ...headers,
-          'Content-Type': 'multipart/form-data'
-        }
-      };
-      const response = await axios.post(`${API_URL}/api/v1/reports/`, formData, config);
+      const response = await reportsAPI.uploadReport(formData);
       return response.data;
     },
     onSuccess: () => {

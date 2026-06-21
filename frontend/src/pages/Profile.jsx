@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { API_BASE_URL } from '../config';
+import API from '../services/api';
 
 const Profile = () => {
   const { user, updateProfile, updateAvatar } = useAuth();
@@ -109,25 +109,16 @@ const Profile = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/change-password/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+      await API.post('/auth/change-password/', {
+        old_password: oldPassword,
+        new_password: newPassword
       });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Password change failed');
-      }
 
       setPwdSuccess('Password changed successfully!');
       setOldPassword('');
       setNewPassword('');
     } catch (err) {
-      setPwdError(err.message);
+      setPwdError(err.response?.data?.error || err.message || 'Password change failed');
     }
   };
 

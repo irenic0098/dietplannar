@@ -26,7 +26,7 @@ API.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const res = await axios.post(`${API_BASE_URL}/token/refresh/`, { refresh });
+          const res = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, { refresh });
           localStorage.setItem('token', res.data.access);
           originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
           return API(originalRequest);
@@ -49,7 +49,32 @@ export const authAPI = {
   updateAvatar: (formData) => API.patch('/auth/profile/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
+  changePassword: (passwordData) => API.post('/auth/change-password/', passwordData),
+  logout: (refresh) => API.post('/auth/logout/', { refresh }),
 };
+
+export const reportsAPI = {
+  getReports: () => API.get('/reports/'),
+  getDeficiencies: () => API.get('/reports/deficiencies/'),
+  uploadReport: (formData) => API.post('/reports/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+};
+
+export const notificationsAPI = {
+  getNotifications: () => API.get('/notifications/'),
+  markAllRead: () => API.post('/notifications/read-all/'),
+  clearAll: () => API.post('/notifications/clear/'),
+  markRead: (id) => API.post(`/notifications/${id}/read/`),
+};
+
+export const adminAPI = {
+  getStats: () => API.get('/auth/stats/'),
+  getUsers: () => API.get('/auth/users/'),
+  getAuditLogs: () => API.get('/auth/audit-logs/'),
+  updateUserRole: (userId, role) => API.post('/auth/users/role/', { user_id: userId, role }),
+};
+
 
 export const calculatorAPI = {
   calculateBMI: (weight_kg, height_cm) => API.post('/calculate/bmi/', { weight_kg, height_cm }),
