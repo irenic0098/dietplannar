@@ -26,8 +26,8 @@ const Home = () => {
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
           {user ? (
-            <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
-              {t('dashboard')} 📊
+            <button className="btn btn-primary" onClick={() => navigate('/diet-plan')}>
+              {t('dietPlan')} 📋
             </button>
           ) : (
             <button className="btn btn-primary" onClick={() => navigate('/portal')}>

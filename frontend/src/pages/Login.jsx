@@ -25,7 +25,7 @@ const Login = () => {
 
     try {
       await login(email, password);
-      navigate('/dashboard');
+      navigate('/diet-plan');
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {

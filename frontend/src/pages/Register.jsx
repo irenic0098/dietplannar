@@ -48,7 +48,7 @@ const Register = () => {
         weight_kg: parseFloat(formData.weight_kg),
       };
       await register(payload);
-      navigate('/dashboard');
+      navigate('/diet-plan');
     } catch (err) {
       setError(err.message || 'Registration failed. Check your input fields.');
     } finally {

@@ -38,11 +38,6 @@ const Sidebar = ({ isCollapsed, onMouseEnter, onMouseLeave }) => {
 
         {user ? (
           <>
-            <li className="nav-item" title={t('dashboard')}>
-              <NavLink to="/dashboard" className={({ isActive }) => isActive ? "active" : ""}>
-                <span>📊</span> {!isCollapsed && t('dashboard')}
-              </NavLink>
-            </li>
             <li className="nav-item" title={t('dietPlan')}>
               <NavLink to="/diet-plan" className={({ isActive }) => isActive ? "active" : ""}>
                 <span>📋</span> {!isCollapsed && t('dietPlan')}

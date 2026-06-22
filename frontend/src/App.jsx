@@ -13,7 +13,6 @@ import Home from './pages/Home';
 import Portal from './pages/Portal';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
 import DietPlan from './pages/DietPlan';
 import FoodDatabase from './pages/FoodDatabase';
 import Tracking from './pages/Tracking';
@@ -36,7 +35,7 @@ const ProtectedRoute = ({ children }) => {
 const GuestRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div style={{ padding: '40px', color: '#fff', textAlign: 'center' }}>Verifying credentials... 🔐</div>;
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to="/diet-plan" replace />;
   return children;
 };
 
@@ -79,11 +78,6 @@ const AppLayout = () => {
           } />
 
           {/* Protected Routes */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } />
           <Route path="/diet-plan" element={
             <ProtectedRoute>
               <DietPlan />

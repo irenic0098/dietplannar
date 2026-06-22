@@ -62,7 +62,7 @@ const Portal = () => {
     setLoginLoading(true);
     try {
       await login(loginEmail, loginPassword);
-      navigate('/dashboard');
+      navigate('/diet-plan');
     } catch (err) {
       setLoginError(err.message || 'Login failed. Check your credentials.');
     } finally {
@@ -91,7 +91,7 @@ const Portal = () => {
         weight_kg: parseFloat(regData.weight_kg),
       };
       await register(payload);
-      navigate('/dashboard');
+      navigate('/diet-plan');
     } catch (err) {
       setRegError(err.message || 'Registration failed. Check your inputs.');
     } finally {
@@ -167,10 +167,10 @@ const Portal = () => {
                       '--card-btn-border': 'var(--accent)',
                       textAlign: 'center'
                     }} onClick={() => handleSlideChange(1)}>
-                      <div className="stats-icon" style={{ margin: '0 auto', fontSize: '1.8rem', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent)' }}>📊</div>
-                      <h4 style={{ marginTop: '16px', marginBottom: '8px' }}>My Dashboard</h4>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>View your tracked food, daily calorie targets, and hydration logs.</p>
-                      <button className="portal-card-btn">Go to Dashboard →</button>
+                      <div className="stats-icon" style={{ margin: '0 auto', fontSize: '1.8rem', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent)' }}>📋</div>
+                      <h4 style={{ marginTop: '16px', marginBottom: '8px' }}>My Diet Plan</h4>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>View and manage your active diet plans and target weight logs.</p>
+                      <button className="portal-card-btn">Go to Diet Plan →</button>
                     </div>
                     <div className="portal-option-card" style={{
                       '--card-glow-color': 'rgba(59, 130, 246, 0.25)',
@@ -198,7 +198,7 @@ const Portal = () => {
                     }} onClick={() => handleSlideChange(1)}>
                       <div className="stats-icon" style={{ margin: '0 auto', fontSize: '1.8rem', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent)' }}>🔑</div>
                       <h4 style={{ marginTop: '16px', marginBottom: '8px' }}>Sign In Profile</h4>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>Access your personalized dashboard and save progress logs.</p>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>Access your personalized diet plans and save progress logs.</p>
                       <button className="portal-card-btn">Open Form →</button>
                     </div>
                     <div className="portal-option-card" style={{
@@ -243,10 +243,10 @@ const Portal = () => {
                 <div style={{ textAlign: 'center', padding: '20px' }}>
                   <h2 style={{ marginBottom: '16px' }}>🚀 Welcome back, {user.username || 'User'}!</h2>
                   <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', maxWidth: '500px', margin: '0 auto 32px' }}>
-                    You are currently logged in. Access your metrics tracker, calorie needs, hydration log, and personalized meals.
+                    You are currently logged in. Access your metabolic profile, grocery lists, and personalized meals.
                   </p>
-                  <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>
-                    Go to My Dashboard 📊
+                  <button className="btn btn-primary" onClick={() => navigate('/diet-plan')}>
+                    Go to My Diet Plan 📋
                   </button>
                 </div>
               ) : (
