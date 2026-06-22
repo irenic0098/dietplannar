@@ -49,9 +49,84 @@ body {
 /* Layout */
 .app-container {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   transition: var(--transition);
 }
+
+/* Top Navbar */
+.top-navbar {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 28px;
+  height: 64px;
+  background: rgba(10, 14, 26, 0.85);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.top-navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.top-navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+  padding: 0 12px;
+}
+
+.top-navbar-menu::-webkit-scrollbar {
+  display: none;
+}
+
+.top-navbar-item a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: var(--transition);
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.top-navbar-item a:hover,
+.top-navbar-item a.active {
+  color: var(--text-primary);
+  background: rgba(16, 185, 129, 0.08);
+  border-bottom-color: var(--accent);
+}
+
+.top-navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 
 .sidebar {
   width: 260px;
@@ -88,14 +163,9 @@ body {
 .sidebar.collapsed .nav-item a span {
   font-size: 1.35rem;
 }
-
-.sidebar-collapsed .main-content {
-  margin-left: 80px;
-}
-
 .main-content {
   flex: 1;
-  margin-left: 80px; /* Fixed margin to prevent layout shifts on sidebar hover */
+  margin-left: 0;
   padding: 32px;
   min-height: 100vh;
   background-image: radial-gradient(circle at 12% 18%, rgba(16, 185, 129, 0.06) 0%, transparent 40%),
